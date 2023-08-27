@@ -1,0 +1,94 @@
+name: Build Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      PROTON_RELEASE:
+        description: 'Release tag'
+        required: true
+        default: 'master'
+      KERNEL_TREE:
+        description: 'Kernel Tree URL'
+        required: true
+        default: 'https://github.com/cd-Crypton/android_kernel_realme_sm6225'
+      KERNEL_BRANCH:
+        description: 'Kernel Tree Branch'
+        required: true
+        default: 'android13-staging'
+      KERNEL_DEFCONFIG:
+        description: 'Kernel Defconfig'
+        required: true
+        default: 'vendor/bengal-perf_defconfig'
+
+jobs:
+  build:
+    name: Build Kernel by ${{ github.actor }}
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install libarchive-tools git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3
+      
+    - name: Setup Proton
+      run: |
+        mkdir -p android && cd android
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang -b ${{ github.event.inputs.PROTON_RELEASE }} ./toolchains/proton-clang
+        cd toolchains/proton-clang
+        curl -LO "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman"
+        bash antman --patch=glibc
+
+    - name: Clone Kernel Tree
+      run: |
+        cd android
+        git clone --depth=1 ${{ github.event.inputs.KERNEL_TREE }} -b ${{ github.event.inputs.KERNEL_BRANCH }} ./kernel
+
+    - name: Set Properties
+      run: |
+        echo "MAKE=$(cat make.txt)" >> $GITHUB_ENV
+        echo "BUILD_DATE=$(TZ=Asia/Manila date +%Y%m%d)" >> $GITHUB_ENV
+
+    - name: Build Kernel
+      run: |
+        PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:/bin:$PATH"
+        cd android/kernel
+        ${{ env.MAKE }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
+        ${{ env.MAKE }} -j"$(nproc --all)"
+
+    - name: Check Kernel
+      run: |
+        cd android
+        if [ -f kernel/out/arch/arm64/boot/Image.gz ]; then
+            echo "KERNEL_IS_OK=true" >> $GITHUB_ENV
+            git clone --depth=1 https://github.com/cd-Crypton/AnyKernel3.git -b FOR-ALL
+            cd kernel/out/arch/arm64/boot && cp -r Image.gz ${GITHUB_WORKSPACE}/android/AnyKernel3
+        else
+            echo "Kernel out directory is empty."
+            exit 1
+        fi
+
+    - name: Compress Kernel
+      if: env.KERNEL_IS_OK == 'true'
+      run: |
+        cd android/AnyKernel3
+        zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip * -x .git README.md *placeholder
+
+    - name: Upload to Release
+      if: env.KERNEL_IS_OK == 'true'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          android/kernel/out/arch/arm64/boot/Image.gz
+          android/AnyKernel3/UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip
+        name: Proton Kernel Build | ${{ env.BUILD_DATE }}
+        tag_name: ${{ github.run_id }}
+        body: |
+          Test at your own risk.
