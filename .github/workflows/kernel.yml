@@ -70,6 +70,7 @@ jobs:
         cd android
         if [ -f kernel/out/arch/arm64/boot/${{ github.event.inputs.KERNEL_IMAGE_NAME }} ]; then
             echo "KERNEL_IS_OK=true" >> $GITHUB_ENV
+            echo "KERNEL_VERSION=$(cat kernel/out/include/config/kernel.release)" >> $GITHUB_ENV
         else
             echo "Kernel out directory is empty. Maybe(?) your name input did not exist at all. Try other kernel name."
             exit 1
@@ -91,8 +92,10 @@ jobs:
         files: |
           android/kernel/out/arch/arm64/boot/${{ github.event.inputs.KERNEL_IMAGE_NAME }}
           android/AnyKernel3/UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip
-        name: Proton Kernel Build | ${{ env.BUILD_DATE }}
+        name: Proton Kernel Build | ${{ env.KERNEL_VERSION }} | ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
+         ### Notes
           * Kernel were built/compiled using proton-clang.
           * Test at your own risk.
+          * Use kernel flasher or any custom recoveries to flash the compressed kernel zip file.
