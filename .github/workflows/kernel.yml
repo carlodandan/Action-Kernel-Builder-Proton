@@ -90,4 +90,5 @@ jobs:
         name: Proton Kernel Build | ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
-          Test at your own risk.
+          * Kernel were built/compiled using proton-clang.
+          * Test at your own risk.
