@@ -60,8 +60,8 @@ jobs:
       run: |
         PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:/bin:$PATH"
         cd android/kernel
-        make ${{ env.MAKE }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
-        make ${{ env.MAKE }} -j"$(nproc --all)"
+        ${{ env.MAKE }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
+        ${{ env.MAKE }} -j"$(nproc --all)"
 
     - name: Check Kernel
       run: |
