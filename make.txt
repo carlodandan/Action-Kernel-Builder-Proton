@@ -1,1 +1,1 @@
-make O=out ARCH=arm64 LLVM=1 CROSS_COMPILE=aarch64-linux-gnu CROSS_COMPILE_COMPAT=arm-linux-gnueabi
+O=out ARCH=arm64 LLVM=1 CROSS_COMPILE=aarch64-linux-gnu CROSS_COMPILE_COMPAT=arm-linux-gnueabi

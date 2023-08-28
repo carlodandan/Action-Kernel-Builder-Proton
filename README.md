@@ -7,6 +7,5 @@ Compile your first custom kernel using [proton-clang](https://github.com/kdrag0n
 
 ### Builder Notes
 * The last proton-clang release is the current branch, `master`. If you want to build with much older release, choose your own tag.
-* The builder uses antman from [neutron-clang](https://github.com/Neutron-Toolchains) to patch glibc incase clang requires v2.36+ in compiling, since the default glibc package from Debian/Ubuntu (latest, in gitaction) were at 2.35 only.
 * To change invocations for make command, just edit make.txt, change it how ever you want.
 * Builder uses osm0sis' AnyKernel3 template but with modified (just a bit) anykernel.sh - device checking were set to 0. Flash at your own risk.
