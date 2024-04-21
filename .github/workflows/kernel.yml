@@ -54,14 +54,15 @@ jobs:
     - name: Set Properties
       run: |
         echo "MAKE=$(cat make.txt)" >> $GITHUB_ENV
+        echo "ADD=$(cat add.txt)" >> $GITHUB_ENV
         echo "BUILD_DATE=$(TZ=Asia/Manila date +%Y%m%d)" >> $GITHUB_ENV
 
     - name: Build Kernel
       run: |
         PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:/bin:$PATH"
         cd android/kernel
-        ${{ env.MAKE }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
-        ${{ env.MAKE }} -j"$(nproc --all)"
+        ${{ env.MAKE }} ${{ env.ADD }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
+        ${{ env.MAKE }} ${{ env.ADD }} -j"$(nproc --all)"
 
     - name: Check Kernel
       run: |
