@@ -117,6 +117,6 @@ jobs:
         tag_name: ${{ github.run_id }}
         body: |
          ### Notes
-          * Kernel were built/compiled using proton-clang.
+          * Kernel were built/compiled using [proton-clang](https://github.com/kdrag0n/proton-clang/tree/${{ inputs.PROTON_RELEASE }}).
           * Test at your own risk.
           * Use kernel flasher or any custom recoveries to flash the compressed kernel zip file.
