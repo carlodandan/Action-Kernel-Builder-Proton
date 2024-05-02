@@ -96,8 +96,9 @@ jobs:
       run: |
         cd android
         git clone --depth=1 https://github.com/cd-Crypton/AnyKernel3.git -b FOR-ALL
-        cd kernel/out/arch/arm64/boot && cp -r ${{ inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
-        cd ${GITHUB_WORKSPACE}/android/AnyKernel3
+        cp -nf kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
+        cp -nf $(find kernel/out -name '*.ko') ${GITHUB_WORKSPACE}/android/AnyKernel3/modules/system/lib/modules/
+        cd AnyKernel3/
         zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip * -x .git README.md *placeholder
 
     - name: Upload to Release
