@@ -23,6 +23,18 @@ on:
         description: 'Kernel image name'
         required: true
         default: 'Image.gz'
+      LLVM_IAS:
+        description: 'Use Integrated Assembler?'
+        required: true
+        type: choice
+        default: 'LLVM_IAS=1'
+        options:
+        - LLVM_IAS=1
+        - LLVM_IAS=0
+      EXTRA_CMDS:
+        description: '(Optional) Extra command separated by a space to be passed directly to make  (leave blank if not using).'
+        type: string
+        required: false
 
 jobs:
   build:
@@ -65,8 +77,8 @@ jobs:
         export PATH="$CLANG_PATH:$PATH"
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
-        make O=out CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 ${{ inputs.KERNEL_DEFCONFIG }}
-        make O=out CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)"
+        make O=out CC=clang LD=ld.lld LLVM=1 ${{ github.event.inputs.LLVM_IAS }} ${{ github.event.inputs.EXTRA_CMDS }} ${{ inputs.KERNEL_DEFCONFIG }}
+        make O=out CC=clang LD=ld.lld LLVM=1 ${{ github.event.inputs.LLVM_IAS }} ${{ github.event.inputs.EXTRA_CMDS }} -j"$(nproc --all)"
 
     - name: Check Kernel
       run: |
