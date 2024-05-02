@@ -56,12 +56,12 @@ jobs:
       run: |
         mkdir -p android && cd android
         git config --global advice.detachedHead false
-        git clone --depth=1 https://github.com/kdrag0n/proton-clang -b ${{ github.event.inputs.PROTON_RELEASE }} ./toolchains/proton-clang
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang -b ${{ inputs.PROTON_RELEASE }} ./toolchains/proton-clang
 
     - name: Clone Kernel Tree
       run: |
         cd android
-        git clone --depth=1 ${{ github.event.inputs.KERNEL_TREE }} -b ${{ github.event.inputs.KERNEL_BRANCH }} ./kernel
+        git clone --depth=1 ${{ inputs.KERNEL_TREE }} -b ${{ inputs.KERNEL_BRANCH }} ./kernel
 
     - name: Set Properties
       run: |
@@ -77,13 +77,13 @@ jobs:
         export PATH="$CLANG_PATH:$PATH"
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
-        make O=out CC=clang LD=ld.lld LLVM=1 ${{ github.event.inputs.LLVM_IAS }} ${{ github.event.inputs.EXTRA_CMDS }} ${{ inputs.KERNEL_DEFCONFIG }}
-        make O=out CC=clang LD=ld.lld LLVM=1 ${{ github.event.inputs.LLVM_IAS }} ${{ github.event.inputs.EXTRA_CMDS }} -j"$(nproc --all)"
+        make O=out CC=clang LD=ld.lld LLVM=1 ${{ inputs.LLVM_IAS }} ${{ inputs.EXTRA_CMDS }} ${{ inputs.KERNEL_DEFCONFIG }}
+        make O=out CC=clang LD=ld.lld LLVM=1 ${{ inputs.LLVM_IAS }} ${{ inputs.EXTRA_CMDS }} -j"$(nproc --all)"
 
     - name: Check Kernel
       run: |
         cd android
-        if [ -f kernel/out/arch/arm64/boot/${{ github.event.inputs.KERNEL_IMAGE_NAME }} ]; then
+        if [ -f kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }} ]; then
             echo "KERNEL_IS_OK=true" >> $GITHUB_ENV
             echo "KERNEL_VERSION=$(cat kernel/out/include/config/kernel.release)" >> $GITHUB_ENV
         else
@@ -96,7 +96,7 @@ jobs:
       run: |
         cd android
         git clone --depth=1 https://github.com/cd-Crypton/AnyKernel3.git -b FOR-ALL
-        cd kernel/out/arch/arm64/boot && cp -r ${{ github.event.inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
+        cd kernel/out/arch/arm64/boot && cp -r ${{ inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
         cd ${GITHUB_WORKSPACE}/android/AnyKernel3
         zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip * -x .git README.md *placeholder
 
@@ -105,7 +105,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          android/kernel/out/arch/arm64/boot/${{ github.event.inputs.KERNEL_IMAGE_NAME }}
+          android/kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }}
           android/AnyKernel3/UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip
         name: Proton Kernel Build | ${{ env.KERNEL_VERSION }} | ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
