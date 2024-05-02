@@ -10,15 +10,15 @@ on:
       KERNEL_TREE:
         description: 'Kernel tree URL'
         required: true
-        default: 'https://github.com/cd-Crypton/android_kernel_realme_sm6225'
+        default: 'https://github.com/carlodandan/android_kernel_realme_sm6225'
       KERNEL_BRANCH:
         description: 'Kernel tree Branch'
         required: true
-        default: 'android13-staging'
+        default: 'lineage-21'
       KERNEL_DEFCONFIG:
         description: 'Kernel defconfig'
         required: true
-        default: 'vendor/bengal-perf_defconfig'
+        default: 'vendor/sm6225-perf_defconfig'
       KERNEL_IMAGE_NAME:
         description: 'Kernel image name'
         required: true
@@ -53,16 +53,20 @@ jobs:
 
     - name: Set Properties
       run: |
-        echo "MAKE=$(cat make.txt)" >> $GITHUB_ENV
-        echo "ADD=$(cat add.txt)" >> $GITHUB_ENV
         echo "BUILD_DATE=$(TZ=Asia/Manila date +%Y%m%d)" >> $GITHUB_ENV
 
     - name: Build Kernel
       run: |
         PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:/bin:$PATH"
         cd android/kernel
-        ${{ env.MAKE }} ${{ env.ADD }} ${{ github.event.inputs.KERNEL_DEFCONFIG }}
-        ${{ env.MAKE }} ${{ env.ADD }} -j"$(nproc --all)"
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CLANG_PATH="~/toolchains/bin"
+        export PATH="$CLANG_PATH:$PATH"
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
+        make O=out CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 ${{ inputs.KERNEL_DEFCONFIG }}
+        make O=out CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)"
 
     - name: Check Kernel
       run: |
