@@ -45,12 +45,12 @@ jobs:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Packages
       run: |
         sudo apt-get update
-        sudo apt-get install git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 python3 device-tree-compiler
+        sudo apt-get install bison flex rsync bison device-tree-compiler bc cpio -y
       
     - name: Setup Proton
       run: |
@@ -69,12 +69,9 @@ jobs:
 
     - name: Build Kernel
       run: |
-        PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:/bin:$PATH"
         cd android/kernel
+        export PATH="${GITHUB_WORKSPACE}/android/toolchains/proton-clang/bin:$PATH"
         export ARCH=arm64
-        export SUBARCH=arm64
-        export CLANG_PATH="~/toolchains/bin"
-        export PATH="$CLANG_PATH:$PATH"
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
         if [ -z ${{ inputs.EXTRA_CMDS }} ]; then
@@ -104,15 +101,15 @@ jobs:
         cp -nf kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
         cp -nf $(find kernel/out -name '*.ko') ${GITHUB_WORKSPACE}/android/AnyKernel3/modules/system/lib/modules/
         cd AnyKernel3/
-        zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip * -x .git README.md *placeholder
+        zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}-proton.zip * -x .git README.md *placeholder
 
     - name: Upload to Release
       if: env.KERNEL_IS_OK == 'true'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           android/kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }}
-          android/AnyKernel3/UPDATE-AnyKernel3-${{ env.BUILD_DATE }}.zip
+          android/AnyKernel3/UPDATE-AnyKernel3-${{ env.BUILD_DATE }}-proton.zip
         name: Proton Kernel Build | ${{ env.KERNEL_VERSION }} | ${{ env.BUILD_DATE }}
         tag_name: ${{ github.run_id }}
         body: |
