@@ -100,6 +100,7 @@ jobs:
         git clone --depth=1 https://github.com/cd-Crypton/AnyKernel3.git -b FOR-ALL
         cp -nf kernel/out/arch/arm64/boot/${{ inputs.KERNEL_IMAGE_NAME }} ${GITHUB_WORKSPACE}/android/AnyKernel3
         cp -nf $(find kernel/out -name '*.ko') ${GITHUB_WORKSPACE}/android/AnyKernel3/modules/system/lib/modules/
+        ./toolchains/proton-clang/bin/llvm-strip --strip-debug ./AnyKernel3/modules/system/lib/modules/*.ko
         cd AnyKernel3/
         zip -r9 UPDATE-AnyKernel3-${{ env.BUILD_DATE }}-proton.zip * -x .git README.md *placeholder
 
